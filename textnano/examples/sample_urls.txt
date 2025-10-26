@@ -1,0 +1,45 @@
+# Sample URLs for textnano - Machine Learning Topics
+# One URL per line. Lines starting with # are ignored.
+
+# Wikipedia ML Articles
+https://en.wikipedia.org/wiki/Machine_learning
+https://en.wikipedia.org/wiki/Deep_learning
+https://en.wikipedia.org/wiki/Artificial_neural_network
+https://en.wikipedia.org/wiki/Natural_language_processing
+https://en.wikipedia.org/wiki/Computer_vision
+https://en.wikipedia.org/wiki/Reinforcement_learning
+https://en.wikipedia.org/wiki/Supervised_learning
+https://en.wikipedia.org/wiki/Unsupervised_learning
+
+# Classic ML Algorithms
+https://en.wikipedia.org/wiki/Linear_regression
+https://en.wikipedia.org/wiki/Logistic_regression
+https://en.wikipedia.org/wiki/Decision_tree
+https://en.wikipedia.org/wiki/Random_forest
+https://en.wikipedia.org/wiki/Support_vector_machine
+https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm
+https://en.wikipedia.org/wiki/K-means_clustering
+
+# Deep Learning Architectures
+https://en.wikipedia.org/wiki/Convolutional_neural_network
+https://en.wikipedia.org/wiki/Recurrent_neural_network
+https://en.wikipedia.org/wiki/Long_short-term_memory
+https://en.wikipedia.org/wiki/Transformer_(machine_learning_model)
+https://en.wikipedia.org/wiki/Generative_adversarial_network
+https://en.wikipedia.org/wiki/Autoencoder
+
+# Modern ML Models
+https://en.wikipedia.org/wiki/BERT_(language_model)
+https://en.wikipedia.org/wiki/GPT-3
+https://en.wikipedia.org/wiki/GPT-4
+
+# ML Concepts
+https://en.wikipedia.org/wiki/Overfitting
+https://en.wikipedia.org/wiki/Backpropagation
+https://en.wikipedia.org/wiki/Gradient_descent
+https://en.wikipedia.org/wiki/Cross-validation_(statistics)
+https://en.wikipedia.org/wiki/Bias-variance_tradeoff
+
+# Total: ~30 URLs
+# Expected output: ~30 text files, ~100K words
+# Time to download: ~1-2 minutes
