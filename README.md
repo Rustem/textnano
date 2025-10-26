@@ -15,6 +15,8 @@ Perfect for ML students who just want clean text datasets quickly.
 
 ✅ **Clean text** - HTML removed, whitespace normalized
 
+✅ **Smart filtering** - Excludes social media, images, videos by default
+
 ## Installation
 
 ```bash
@@ -80,11 +82,17 @@ Each .txt file format:
 ### Command Line
 
 ```bash
-# Basic
+# Basic (uses default filters)
 textnano urls.txt output/
 
 # Limit number of URLs
 textnano urls.txt output/ 100
+
+# Add custom exclusions
+textnano urls.txt output/ --exclude-domains spam.com --exclude-extensions rar
+
+# Disable default filters (only use your custom ones)
+textnano urls.txt output/ --no-default-excludes --exclude-domains mysite.com
 
 # Get statistics
 textnano stats output/
@@ -98,9 +106,23 @@ textnano merge dataset1/ dataset2/ merged/
 ```python
 import textnano
 
-# Download and clean
+# Download and clean (with default filters)
 stats = textnano.download_and_clean('urls.txt', 'output/')
-print(f"Success: {stats['success']}, Failed: {stats['failed']}")
+print(f"Success: {stats['success']}, Failed: {stats['failed']}, Excluded: {stats['excluded']}")
+
+# Add custom exclusions
+stats = textnano.download_and_clean(
+    'urls.txt', 'output/',
+    exclude_domains=['spam.com', 'ads.net'],
+    exclude_extensions=['rar', 'exe']
+)
+
+# Disable default filters
+stats = textnano.download_and_clean(
+    'urls.txt', 'output/',
+    use_default_excludes=False,
+    exclude_domains=['mysite.com']
+)
 
 # Get dataset statistics
 stats = textnano.estimate_dataset_size('output/')
@@ -112,11 +134,12 @@ textnano.merge_datasets('dataset1/', 'dataset2/', output_dir='merged/')
 
 ## What It Does
 
-1. **Downloads** - Fetches content from each URL
-2. **Cleans** - Removes HTML tags, normalizes whitespace
-3. **Filters** - Skips documents with < 50 words
-4. **Deduplicates** - Removes duplicate content
-5. **Saves** - Numbered text files (0001.txt, 0002.txt, ...)
+1. **Filters** - Excludes social media, images, videos (132 domains, 37 extensions by default)
+2. **Downloads** - Fetches content from each URL
+3. **Cleans** - Removes HTML tags, normalizes whitespace
+4. **Filters length** - Skips documents with < 50 words
+5. **Deduplicates** - Removes duplicate content
+6. **Saves** - Numbered text files (0001.txt, 0002.txt, ...)
 
 ## Perfect For
 
@@ -288,6 +311,16 @@ A: This is a learning tool. For production, use lazynlp or build a proper scrape
 
 **Q: How to cite this?**
 A: This is a simplified educational version of lazynlp. Cite the original: https://github.com/chiphuyen/lazynlp
+
+## Default Exclusions
+
+By default, textnano excludes:
+
+**Domains (132)**: Social media (reddit, twitter, instagram, etc.), image hosts (imgur, flickr, etc.), video platforms (youtube, vimeo, etc.), shopping sites (amazon, walmart, etc.)
+
+**Extensions (37)**: Images (.jpg, .png, .gif), videos (.mp4, .mov), documents (.pdf, .doc), executables (.exe, .apk), archives (.zip, .tar)
+
+Use `--no-default-excludes` to disable this behavior.
 
 ## Limitations
 

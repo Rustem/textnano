@@ -1,8 +1,9 @@
 # textnano - 30 Second Quick Start
 
-## Install (copy one file)
+## Install
 ```bash
-curl -O https://raw.githubusercontent.com/yourusername/textnano/main/textnano.py
+pip install -e .
+# Or use directly: python -m textnano
 ```
 
 ## Run (3 steps)
@@ -10,12 +11,24 @@ curl -O https://raw.githubusercontent.com/yourusername/textnano/main/textnano.py
 # 1. Create URL list
 echo "https://en.wikipedia.org/wiki/Machine_learning" > urls.txt
 
-# 2. Download
-python textnano.py urls.txt dataset/
+# 2. Download (automatically filters social media, images, videos)
+textnano urls.txt dataset/
 
 # 3. Done!
 ls dataset/
 # → 0001.txt, success.txt, failed.txt
+```
+
+## Advanced Usage
+```bash
+# Add custom exclusions
+textnano urls.txt dataset/ --exclude-domains spam.com --exclude-extensions rar
+
+# Disable default filters
+textnano urls.txt dataset/ --no-default-excludes
+
+# Limit URLs
+textnano urls.txt dataset/ 100
 ```
 
 ## That's it!

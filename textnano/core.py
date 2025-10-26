@@ -26,6 +26,51 @@ from pathlib import Path
 
 
 # =============================================================================
+# DEFAULT EXCLUSION LISTS
+# =============================================================================
+
+DEFAULT_EXCLUDE_DOMAINS = [
+    '500px', 'aa.com.tr', 'abercrombie', 'akamaihd', 'amazon', 'archive.is',
+    'archive.li', 'artstation', 'audio-ice1.ibiblio.org', 'awwni', 'bandcamp',
+    'bandcamp.com', 'bellinghamherald.com', 'bestbuy.com', 'bnd.com',
+    'charlotteobserver.com', 'costco', 'dailymotion', 'deviantart', 'diffchecker.com',
+    'discord', 'discordapp', 'dropbox', 'e621', 'eastbay.com', 'elnuevoherald.com',
+    'erome', 'eroshare', 'eroshare.com', 'fbcdn', 'flickr', 'flkeysnews.com',
+    'footlocker', 'fresnobee.com', 'furaffinity', 'futhead', 'gamestop.com',
+    'gfycat', 'gifsound', 'gifsoup', 'giphy', 'gospelherald.com', 'groupon',
+    'gunprime.com', 'gyazo', 'gyazo.com', 'herald.com', 'heraldonline.com',
+    'heraldsun.com', 'idahostatesman.com', 'imagefap', 'imageshack', 'imgflip.com',
+    'imgur.com', 'instagram', 'islandpacket.com', 'itunes.apple.com', 'kansas.com',
+    'kansascity.com', 'karmadecay', 'kentucky.com', 'kym-cdn', 'ledger-enquirer.com',
+    'lethbridgeherald.com', 'linksynergy.com', 'listen.noagendastream.com', 'liveleak',
+    'livememe', 'lmgtfy', 'm.gamestop.com', 'macon.com', 'magaimg', 'magaimg.net',
+    'mcclatchydc.com', 'mega.nz', 'memegenerator', 'miamiherald.com', 'minus',
+    'modbee.com', 'morejpegmyrtlebeachonline.com', 'newsobserver.com', 'nhk.or.jp',
+    'nocookie', 'pcpartpicker', 'pcrichard.com', 'photobucket', 'pinimg', 'pixiv',
+    'pornhub', 'prntscr', 'puu', 'qkme', 'quickmeme', 'quotev.com', 'radd',
+    'redd', 'reddit', 'reddit-stream', 'redditlog', 'redditmedia', 'reddituploads',
+    'redtube', 'roanoke.com', 'sacbee.com', 'sanluisobispo.com', 'sli.mg',
+    'soundcloud.com', 'soundgasm', 'spankbang', 'spotify', 'spotify.com',
+    'spotrac.com', 'star-telegram.com', 'staticflickr', 'steamcommunity',
+    'store.hp.com', 'store.playstation.com', 'strawpoll', 'strawpoll.me',
+    'streamable', 'streamable.com', 'sunherald.com', 'taobao.com',
+    'themalaymailonline.com', 'thenewstribune.com', 'theolympian.com', 'thestate.com',
+    'ticketmaster', 'timeanddate.com', 'tinypic', 'tri-cityherald.com', 'tumblr',
+    'twimg', 'twimg.com', 'twitch', 'twitch.tv', 'twitter', 'vimeo', 'vimeo.com',
+    'vine', 'vocaroo', 'voyagefusion.com', 'walmart.com', 'wikimedia', 'xhamster',
+    'xkcd.com', 'xvideos', 'yg-life.com', 'youtu.be', 'youtube', 'youtubedoubler.com',
+    'ytimg'
+]
+
+DEFAULT_EXCLUDE_EXTENSIONS = [
+    '3gp', 'apk', 'app', 'bin', 'bz2', 'csv', 'dat', 'doc', 'docx', 'exe',
+    'gif', 'gifv', 'gz', 'iso', 'jar', 'jpeg', 'jpg', 'log', 'm4v', 'mjpg',
+    'mov', 'mp3', 'mp4', 'ogv', 'pdf', 'png', 'pps', 'ppt', 'pptx', 'svg',
+    'tar', 'tgz', 'webm', 'wma', 'wmv', 'xml', 'xz', 'zip'
+]
+
+
+# =============================================================================
 # DOWNLOAD
 # =============================================================================
 
@@ -133,7 +178,9 @@ def is_duplicate(text, seen_fingerprints, threshold=0.8):
 # MAIN PIPELINE
 # =============================================================================
 
-def download_and_clean(url_file, output_dir, min_words=50, max_urls=None):
+def download_and_clean(url_file, output_dir, min_words=50, max_urls=None,
+                       exclude_domains=None, exclude_extensions=None,
+                       use_default_excludes=True):
     """Download text from URLs, clean, and deduplicate.
 
     Args:
@@ -141,6 +188,9 @@ def download_and_clean(url_file, output_dir, min_words=50, max_urls=None):
         output_dir: Directory to save text files
         min_words: Minimum words per document (default: 50)
         max_urls: Maximum URLs to process (default: None = all)
+        exclude_domains: List of domains to exclude (default: None, uses defaults if use_default_excludes=True)
+        exclude_extensions: List of file extensions to exclude (default: None, uses defaults if use_default_excludes=True)
+        use_default_excludes: Use default exclusion lists (default: True)
 
     Output structure:
         output_dir/
@@ -154,6 +204,14 @@ def download_and_clean(url_file, output_dir, min_words=50, max_urls=None):
     """
     # Setup
     os.makedirs(output_dir, exist_ok=True)
+
+    # Normalize filters
+    if use_default_excludes:
+        exclude_domains = set(exclude_domains or []) | set(DEFAULT_EXCLUDE_DOMAINS)
+        exclude_extensions = set(ext.lower().lstrip('.') for ext in (exclude_extensions or [])) | set(DEFAULT_EXCLUDE_EXTENSIONS)
+    else:
+        exclude_domains = set(exclude_domains or [])
+        exclude_extensions = set(ext.lower().lstrip('.') for ext in (exclude_extensions or []))
 
     # Read URLs
     with open(url_file) as f:
@@ -170,13 +228,33 @@ def download_and_clean(url_file, output_dir, min_words=50, max_urls=None):
     seen_fingerprints = set()
 
     # Counters
-    stats = {'success': 0, 'failed': 0, 'duplicates': 0, 'too_short': 0}
+    stats = {'success': 0, 'failed': 0, 'duplicates': 0, 'too_short': 0, 'excluded': 0}
 
     # Process each URL
     print(f"Processing {len(urls)} URLs...")
 
     for idx, url in enumerate(urls, 1):
         print(f"[{idx}/{len(urls)}] {url[:60]}...")
+
+        # Check exclusion filters
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+
+        # Check domain exclusion
+        if exclude_domains and any(domain in parsed.netloc for domain in exclude_domains):
+            failed_log.write(f"{url}\texcluded_domain\n")
+            stats['excluded'] += 1
+            print("  ⊘ Excluded domain")
+            continue
+
+        # Check extension exclusion
+        if exclude_extensions:
+            path_lower = parsed.path.lower()
+            if any(path_lower.endswith(f'.{ext}') for ext in exclude_extensions):
+                failed_log.write(f"{url}\texcluded_extension\n")
+                stats['excluded'] += 1
+                print("  ⊘ Excluded extension")
+                continue
 
         # Download
         text = download_text(url)
@@ -223,6 +301,7 @@ def download_and_clean(url_file, output_dir, min_words=50, max_urls=None):
     print(f"Failed:     {stats['failed']:4d}")
     print(f"Too short:  {stats['too_short']:4d}")
     print(f"Duplicates: {stats['duplicates']:4d}")
+    print(f"Excluded:   {stats['excluded']:4d}")
     print(f"Total:      {len(urls):4d}")
     print("="*60)
 
@@ -303,23 +382,13 @@ def merge_datasets(*dirs, output_dir):
 def main():
     """Command-line interface."""
     import sys
+    import argparse
 
-    if len(sys.argv) < 3:
-        print(__doc__)
-        print("\nUsage:")
-        print("  python textnano.py <url_file> <output_dir> [max_urls]")
-        print("\nExamples:")
-        print("  python textnano.py urls.txt dataset/")
-        print("  python textnano.py urls.txt dataset/ 100")
-        print("\nCommands:")
-        print("  stats <dir>              Show dataset statistics")
-        print("  merge <dir1> <dir2> ...  Merge multiple datasets")
-        sys.exit(1)
-
-    command = sys.argv[1]
-
-    # Stats command
-    if command == 'stats':
+    # Check for simple commands (backward compatibility)
+    if len(sys.argv) >= 2 and sys.argv[1] == 'stats':
+        if len(sys.argv) < 3:
+            print("Usage: textnano stats <dir>")
+            sys.exit(1)
         stats = estimate_dataset_size(sys.argv[2])
         print(f"Files:     {stats['files']}")
         print(f"Words:     {stats['words']:,}")
@@ -327,22 +396,45 @@ def main():
         print(f"Avg/file:  {stats['avg_words_per_file']} words")
         return
 
-    # Merge command
-    if command == 'merge':
+    if len(sys.argv) >= 2 and sys.argv[1] == 'merge':
+        if len(sys.argv) < 4:
+            print("Usage: textnano merge <dir1> <dir2> ... <output_dir>")
+            sys.exit(1)
         output = sys.argv[-1]
         inputs = sys.argv[2:-1]
         merge_datasets(*inputs, output_dir=output)
         return
 
-    # Download command
-    url_file = sys.argv[1]
-    output_dir = sys.argv[2]
-    max_urls = int(sys.argv[3]) if len(sys.argv) > 3 else None
+    # Parse arguments
+    parser = argparse.ArgumentParser(
+        description='textnano - Minimal text dataset builder',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument('url_file', help='File with URLs (one per line)')
+    parser.add_argument('output_dir', help='Output directory')
+    parser.add_argument('max_urls', nargs='?', type=int, default=None,
+                        help='Maximum URLs to process')
+    parser.add_argument('--exclude-domains', '-ed', nargs='+',
+                        help='Additional domains to exclude (adds to defaults)')
+    parser.add_argument('--exclude-extensions', '-ee', nargs='+',
+                        help='Additional file extensions to exclude (adds to defaults)')
+    parser.add_argument('--no-default-excludes', action='store_true',
+                        help='Disable default exclusion lists (only use custom excludes)')
 
-    stats = download_and_clean(url_file, output_dir, max_urls=max_urls)
+    args = parser.parse_args()
+
+    # Download command
+    stats = download_and_clean(
+        args.url_file,
+        args.output_dir,
+        max_urls=args.max_urls,
+        exclude_domains=args.exclude_domains,
+        exclude_extensions=args.exclude_extensions,
+        use_default_excludes=not args.no_default_excludes
+    )
 
     # Show dataset stats
-    dataset_stats = estimate_dataset_size(output_dir)
+    dataset_stats = estimate_dataset_size(args.output_dir)
     print(f"\nDataset: {dataset_stats['files']} files, "
           f"{dataset_stats['words']:,} words, "
           f"{dataset_stats['mb']:.1f} MB")
