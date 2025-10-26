@@ -6,10 +6,24 @@ Perfect for ML students who just want clean text datasets quickly.
 ## Features
 
 ✅ **Zero dependencies** - Pure Python stdlib
+
 ✅ **Single file** - Just copy textnano.py
+
 ✅ **Simple API** - 3 functions, that's it
+
 ✅ **Auto deduplication** - No duplicate documents
+
 ✅ **Clean text** - HTML removed, whitespace normalized
+
+## Installation
+
+```bash
+# Install from source
+pip install -e .
+
+# Or install from PyPI (when published)
+pip install textnano
+```
 
 ## Quick Start
 
@@ -29,7 +43,10 @@ EOF
 
 ```bash
 # Download and clean
-python textnano.py urls.txt dataset/
+textnano urls.txt dataset/
+
+# Or without installation
+python -m textnano urls.txt dataset/
 
 # Output:
 # Processing 4 URLs...
@@ -64,16 +81,16 @@ Each .txt file format:
 
 ```bash
 # Basic
-python textnano.py urls.txt output/
+textnano urls.txt output/
 
 # Limit number of URLs
-python textnano.py urls.txt output/ 100
+textnano urls.txt output/ 100
 
 # Get statistics
-python textnano.py stats output/
+textnano stats output/
 
 # Merge multiple datasets
-python textnano.py merge dataset1/ dataset2/ merged/
+textnano merge dataset1/ dataset2/ merged/
 ```
 
 ### Python API
@@ -123,7 +140,7 @@ https://en.wikipedia.org/wiki/GPT-3
 https://en.wikipedia.org/wiki/BERT_(language_model)
 EOF
 
-python textnano.py ml_wikipedia.txt ml_dataset/
+textnano ml_wikipedia.txt ml_dataset/
 ```
 
 ### Project Gutenberg Books
@@ -135,7 +152,7 @@ https://www.gutenberg.org/files/84/84-h/84-h.htm        # Frankenstein
 https://www.gutenberg.org/files/11/11-h/11-h.htm        # Alice in Wonderland
 EOF
 
-python textnano.py books.txt books_dataset/
+textnano books.txt books_dataset/
 ```
 
 ### News Articles
@@ -146,7 +163,7 @@ https://example-news.com/article-1
 https://example-news.com/article-2
 EOF
 
-python textnano.py news.txt news_dataset/
+textnano news.txt news_dataset/
 ```
 
 ## Parallel Processing
@@ -159,12 +176,12 @@ split -l 100 all_urls.txt chunk_
 
 # Run multiple processes
 for file in chunk_*; do
-    python textnano.py "$file" "output_$(basename $file)/" &
+    textnano "$file" "output_$(basename $file)/" &
 done
 wait
 
 # Merge results
-python textnano.py merge output_*/ final_dataset/
+textnano merge output_*/ final_dataset/
 ```
 
 ## Comparison

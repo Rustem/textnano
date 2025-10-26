@@ -21,6 +21,7 @@ import re
 import html
 import urllib.request
 import hashlib
+import ssl
 from pathlib import Path
 
 
@@ -38,7 +39,13 @@ def download_text(url, timeout=30):
         # Download
         headers = {'User-Agent': 'Mozilla/5.0'}
         req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req, timeout=timeout) as response:
+
+        # Create SSL context that doesn't verify certificates
+        context = ssl.create_default_context()
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+
+        with urllib.request.urlopen(req, timeout=timeout, context=context) as response:
             content = response.read().decode('utf-8', errors='ignore')
 
         # Basic HTML cleaning

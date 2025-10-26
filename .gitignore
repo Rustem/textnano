@@ -3,3 +3,11 @@ __pycache__
 *.pyc
 .DS_Store
 *.egg-info/
+
+# Datasets and test folders
+dataset/
+test_dataset/
+test_main/
+final_test/
+demo_dataset/
+demo_dedup/
