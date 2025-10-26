@@ -24,5 +24,5 @@ Want more examples? See [README.md](README.md)
 
 Want to try it? Run:
 ```bash
-python demo_textnano.py
+python textnano/examples/demo_textnano.py
 ```

@@ -9,5 +9,6 @@ dataset/
 test_dataset/
 test_main/
 final_test/
+test_output/
 demo_dataset/
 demo_dedup/
