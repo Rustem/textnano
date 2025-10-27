@@ -1,21 +1,21 @@
 # textnano - Minimal Text Dataset Builder
 
-A **single-file** (~200 lines) text dataset builder inspired by lazynlp.
+A **minimal** text dataset builder inspired by lazynlp.
 Perfect for ML students who just want clean text datasets quickly.
 
 ## Features
 
 ✅ **Zero dependencies** - Pure Python stdlib
 
-✅ **Single file** - Just copy textnano.py
-
-✅ **Simple API** - 3 functions, that's it
+✅ **Simple API** - Easy to use and understand
 
 ✅ **Auto deduplication** - No duplicate documents
 
 ✅ **Clean text** - HTML removed, whitespace normalized
 
 ✅ **Smart filtering** - Excludes social media, images, videos by default
+
+✅ **Built-in extractors** - Wikipedia, Reddit, Gutenberg support
 
 ## Installation
 
@@ -45,10 +45,7 @@ EOF
 
 ```bash
 # Download and clean
-textnano urls.txt dataset/
-
-# Or without installation
-python -m textnano urls.txt dataset/
+textnano urls urls.txt dataset/
 
 # Output:
 # Processing 4 URLs...
@@ -82,23 +79,50 @@ Each .txt file format:
 ### Command Line
 
 ```bash
-# Basic (uses default filters)
-textnano urls.txt output/
+# Basic usage (uses default filters)
+textnano urls urls.txt output/
 
 # Limit number of URLs
-textnano urls.txt output/ 100
+textnano urls urls.txt output/ 100
 
 # Add custom exclusions
-textnano urls.txt output/ --exclude-domains spam.com --exclude-extensions rar
+textnano urls urls.txt output/ --exclude-domains spam.com --exclude-extensions rar
 
 # Disable default filters (only use your custom ones)
-textnano urls.txt output/ --no-default-excludes --exclude-domains mysite.com
+textnano urls urls.txt output/ --no-default-excludes --exclude-domains mysite.com
 
 # Get statistics
 textnano stats output/
 
 # Merge multiple datasets
 textnano merge dataset1/ dataset2/ merged/
+```
+
+### Built-in Extractors
+
+Extract URLs from large data sources, then build datasets:
+
+```bash
+# Wikipedia (requires wikiextractor preprocessing)
+# 1. Install wikiextractor: pip install wikiextractor
+# 2. Extract from dump: python -m wikiextractor.WikiExtractor enwiki-latest.xml.bz2 --json -o wiki_json/
+# 3. Extract URLs:
+textnano wikipedia wiki_json/ --output wikipedia_urls.txt --max 10000
+# 4. Build dataset:
+textnano urls wikipedia_urls.txt wiki_dataset/
+
+# Reddit (from pre-extracted URL files)
+# 1. Download from: https://drive.google.com/file/d/1hRtA3zZ0K5UHKOQ0_8d0BIc_1VyxgY51/view
+# 2. Extract and merge URLs:
+textnano reddit reddit_urls/ --output reddit_urls.txt --max 5000
+# 3. Build dataset:
+textnano urls reddit_urls.txt reddit_dataset/
+
+# Project Gutenberg
+# 1. Generate URLs (checks each book ID):
+textnano gutenberg --output gutenberg_urls.txt --max-id 1000
+# 2. Build dataset:
+textnano urls gutenberg_urls.txt books_dataset/
 ```
 
 ### Python API
@@ -217,52 +241,6 @@ textnano merge output_*/ final_dataset/
 | **Learning time** | 5 min | 30 min | 1 hour |
 | **Deduplication** | ✅ | ✅ | ❌ (you implement) |
 
-## Advanced Tips
-
-### Custom Cleaning
-
-```python
-import textnano
-
-# Download text
-text = textnano.download_text('https://example.com')
-
-# Custom cleaning
-text = text.lower()  # Lowercase
-text = re.sub(r'[^a-z\s]', '', text)  # Only letters
-# ... your processing
-
-# Save
-with open('output.txt', 'w') as f:
-    f.write(text)
-```
-
-### Filter by Content
-
-```python
-import textnano
-
-def download_with_filter(url_file, output_dir, keywords):
-    """Only save documents containing certain keywords."""
-    # Read URLs
-    with open(url_file) as f:
-        urls = [line.strip() for line in f]
-
-    saved = 0
-    for url in urls:
-        text = textnano.download_text(url)
-
-        # Check keywords
-        if text and any(kw in text.lower() for kw in keywords):
-            with open(f'{output_dir}/{saved:04d}.txt', 'w') as f:
-                f.write(f"{url}\n\n{text}")
-            saved += 1
-
-    print(f"Saved {saved} matching documents")
-
-# Usage
-download_with_filter('urls.txt', 'filtered/', ['machine learning', 'neural'])
-```
 
 ### Integration with Pandas
 
@@ -400,20 +378,9 @@ print(f"Built dataset: {stats['words']:,} words")
 
 Inspired by [lazynlp](https://github.com/chiphuyen/lazynlp) by Chip Huyen.
 
-textnano is a simplified educational version - a single file that students can read, understand, and modify.
-
 ## License
 
 MIT License - Do whatever you want with it!
 
-## Learn More
-
-- Read the code - it's only ~200 lines!
-- Modify it for your use case
-- Upgrade to [lazynlp](https://github.com/chiphuyen/lazynlp) for production
-
 ---
-
-**Remember**: This is a learning tool. It teaches the core concepts of web scraping, text cleaning, and deduplication in a simple, readable way. For serious projects, use proper tools like lazynlp, Scrapy, or BeautifulSoup with robust error handling.
-
 Happy dataset building! 🚀

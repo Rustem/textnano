@@ -32,7 +32,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "textnano=textnano.core:main",
+            "textnano=textnano.cli:main",
         ],
     },
     classifiers=[

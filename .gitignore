@@ -1,6 +1,7 @@
 __pycache__
 *.swp
 *.pyc
+*.txt
 .DS_Store
 *.egg-info/
 
