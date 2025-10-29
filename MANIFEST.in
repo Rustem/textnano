@@ -1,12 +1,14 @@
 # Include documentation
 include README.md
-include QUICKSTART.md
 include LICENSE
 
 # Include package data
 recursive-include textnano *.py
+recursive-include textnano *.txt
+recursive-include textnano *.json
 
 # Exclude unnecessary files
+recursive-exclude textnano/examples *
 global-exclude __pycache__
 global-exclude *.py[co]
 global-exclude .DS_Store

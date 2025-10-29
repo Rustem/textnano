@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "textnano"
+version = "0.1.0"
+description = "A minimal text dataset builder inspired by lazynlp. Perfect for ML students who just want clean text datasets quickly."
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "MIT"}
+keywords = ["nlp", "machine-learning", "dataset", "text-processing", "web-scraping", "data-cleaning"]
+authors = [
+    {name = "Rustem", email = "r.kamun@gmail.com"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Text Processing",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+dependencies = []  # Zero dependencies as advertised!
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "black>=22.0",
+    "flake8>=4.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Rustem/textnano"
+Documentation = "https://github.com/Rustem/textnano#readme"
+Repository = "https://github.com/Rustem/textnano"
+"Bug Tracker" = "https://github.com/Rustem/textnano/issues"
+
+[project.scripts]
+textnano = "textnano.cli:main"
+
+[tool.setuptools]
+packages = ["textnano"]
+
+[tool.setuptools.package-data]
+textnano = ["*.txt", "*.json"]
