@@ -20,7 +20,7 @@ setup(
     author_email="rustem@example.com",
     url="https://github.com/Rustem/textnano",
     packages=find_packages(),
-    python_requires=">=3.6",
+    python_requires=">=3.10",
     install_requires=[
         # Zero dependencies - pure Python stdlib!
     ],
@@ -45,12 +45,9 @@ setup(
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
     ],
     keywords="text dataset nlp machine-learning web-scraping data-collection",
     project_urls={
