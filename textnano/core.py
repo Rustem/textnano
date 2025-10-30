@@ -24,6 +24,7 @@ import hashlib
 import ssl
 from pathlib import Path
 from typing import Optional, Set, Dict, List
+from urllib.parse import urlparse
 
 from .config import DEFAULT_EXCLUDE_DOMAINS, DEFAULT_EXCLUDE_EXTENSIONS
 from .utils import print_stats, estimate_dataset_size, merge_datasets
@@ -196,7 +197,6 @@ def download_and_clean(url_file: str, output_dir: str, min_words: int = 50, max_
         print(f"[{idx}/{len(urls)}] {url[:60]}...")
 
         # Check exclusion filters
-        from urllib.parse import urlparse
         parsed = urlparse(url)
 
         # Check domain exclusion
