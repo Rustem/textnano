@@ -22,12 +22,16 @@ import html
 import urllib.request
 import hashlib
 import ssl
+import logging
 from pathlib import Path
 from typing import Optional, Set, Dict, List
 from urllib.parse import urlparse
 
 from .config import DEFAULT_EXCLUDE_DOMAINS, DEFAULT_EXCLUDE_EXTENSIONS
 from .utils import print_stats, estimate_dataset_size, merge_datasets
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 
 # =============================================================================
@@ -186,13 +190,13 @@ def download_and_clean(url_file: str, output_dir: str, min_words: int = 50, max_
     stats = {'success': 0, 'failed': 0, 'duplicates': 0, 'too_short': 0, 'excluded': 0}
 
     # Process each URL
-    print(f"Processing {len(urls)} URLs...")
+    logging.info(f"Processing {len(urls)} URLs...")
 
     with open(os.path.join(output_dir, 'success.txt'), 'w') as success_log, \
          open(os.path.join(output_dir, 'failed.txt'), 'w') as failed_log:
 
         for idx, url in enumerate(urls, 1):
-            print(f"[{idx}/{len(urls)}] {url[:60]}...")
+            logging.info(f"[{idx}/{len(urls)}] {url[:60]}...")
 
             # Check exclusion filters
             parsed = urlparse(url)
@@ -201,7 +205,7 @@ def download_and_clean(url_file: str, output_dir: str, min_words: int = 50, max_
             if exclude_domains and any(domain in parsed.netloc for domain in exclude_domains):
                 failed_log.write(f"{url}\texcluded_domain\n")
                 stats['excluded'] += 1
-                print("  ⊘ Excluded domain")
+                logging.info("  ⊘ Excluded domain")
                 continue
 
             # Check extension exclusion
@@ -210,7 +214,7 @@ def download_and_clean(url_file: str, output_dir: str, min_words: int = 50, max_
                 if any(path_lower.endswith(f'.{ext}') for ext in exclude_extensions):
                     failed_log.write(f"{url}\texcluded_extension\n")
                     stats['excluded'] += 1
-                    print("  ⊘ Excluded extension")
+                    logging.info("  ⊘ Excluded extension")
                     continue
 
             # Download
@@ -219,7 +223,7 @@ def download_and_clean(url_file: str, output_dir: str, min_words: int = 50, max_
             if not text:
                 failed_log.write(f"{url}\n")
                 stats['failed'] += 1
-                print("  ✗ Failed to download")
+                logging.warning("  ✗ Failed to download")
                 continue
 
             # Check length
@@ -227,13 +231,13 @@ def download_and_clean(url_file: str, output_dir: str, min_words: int = 50, max_
             if word_count < min_words:
                 failed_log.write(f"{url}\ttoo_short:{word_count}\n")
                 stats['too_short'] += 1
-                print(f"  ⊘ Too short ({word_count} words)")
+                logging.info(f"  ⊘ Too short ({word_count} words)")
                 continue
 
             # Check duplicate
             if is_duplicate(text, seen_fingerprints):
                 stats['duplicates'] += 1
-                print("  ⊘ Duplicate")
+                logging.info("  ⊘ Duplicate")
                 continue
 
             # Save
@@ -244,7 +248,7 @@ def download_and_clean(url_file: str, output_dir: str, min_words: int = 50, max_
 
             success_log.write(f"{url}\n")
             stats['success'] += 1
-            print(f"  ✓ Saved ({word_count} words)")
+            logging.info(f"  ✓ Saved ({word_count} words)")
 
     # Print summary
     print_stats(stats)
