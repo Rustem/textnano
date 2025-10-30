@@ -95,9 +95,6 @@ def main():
         print(f"Avg/file:  {stats['avg_words_per_file']} words")
 
     elif args.command == 'merge':
-        if len(args.dirs) < 2:
-            print("Usage: textnano merge <dir1> <dir2> ... <output_dir>")
-            sys.exit(1)
         output = args.dirs[-1]
         inputs = args.dirs[:-1]
         merge_datasets(*inputs, output_dir=output, is_duplicate_func=is_duplicate)

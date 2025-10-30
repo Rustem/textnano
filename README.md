@@ -236,7 +236,6 @@ textnano merge output_*/ final_dataset/
 | Feature | textnano | lazynlp | beautifulsoup + requests |
 |---------|----------|---------|--------------------------|
 | **Files** | 1 | 5 | Your custom code |
-| **LOC** | ~200 | ~800 | 100-200 (yours) |
 | **Dependencies** | 0 | 2 | 2+ |
 | **Learning time** | 5 min | 30 min | 1 hour |
 | **Deduplication** | ✅ | ✅ | ❌ (you implement) |

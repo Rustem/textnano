@@ -38,18 +38,16 @@ logging.basicConfig(level=logging.INFO, format='%(message)s')
 # DOWNLOAD
 # =============================================================================
 
-def download_text(url: str, timeout: int = 30) -> Optional[str]:
+def download_text(url: str, timeout: int = 30) -> str:
     """Download and extract text from a URL.
 
     Returns:
-        str or None: Cleaned text content, or None if failed
+        str: Cleaned text content, or empty string if failed
     """
     try:
-        # Download
         headers = {'User-Agent': 'Mozilla/5.0'}
         req = urllib.request.Request(url, headers=headers)
 
-        # Create SSL context that doesn't verify certificates
         context = ssl.create_default_context()
         context.check_hostname = False
         context.verify_mode = ssl.CERT_NONE
@@ -57,20 +55,17 @@ def download_text(url: str, timeout: int = 30) -> Optional[str]:
         with urllib.request.urlopen(req, timeout=timeout, context=context) as response:
             content = response.read().decode('utf-8', errors='ignore')
 
-        # Basic HTML cleaning
-        text = clean_html(content)
-
-        return text if text.strip() else None
+        return clean_html(content)
 
     except urllib.error.HTTPError as e:
         logging.error(f"HTTP error {e.code} for {url}: {e.reason}")
-        return None
+        return ""
     except urllib.error.URLError as e:
         logging.error(f"URL error for {url}: {e.reason}")
-        return None
+        return ""
     except Exception as e:
         logging.error(f"Unexpected error for {url}: {type(e).__name__}: {e}")
-        return None
+        return ""
 
 
 # =============================================================================
@@ -86,21 +81,12 @@ def clean_html(html_content: str) -> str:
     Returns:
         str: Clean text
     """
-    # Unescape HTML entities
-    text = html.unescape(html_content)
-
-    # Remove script and style tags
-    text = re.sub(r'<script[^>]*>.*?</script>', '', text, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r'<script[^>]*>.*?</script>', '', html_content, flags=re.DOTALL | re.IGNORECASE)
     text = re.sub(r'<style[^>]*>.*?</style>', '', text, flags=re.DOTALL | re.IGNORECASE)
-
-    # Remove HTML tags
     text = re.sub(r'<[^>]+>', '', text)
-
-    # Normalize whitespace
+    text = html.unescape(text)
     text = re.sub(r'\s+', ' ', text)
     text = re.sub(r'\n\s*\n', '\n\n', text)
-
-    # Remove leading/trailing whitespace
     text = text.strip()
 
     return text
@@ -120,7 +106,7 @@ def text_fingerprint(text: str, n: int = 8) -> str:
     Returns:
         str: MD5 hash of first N words
     """
-    words = text.lower().split()[:n]
+    words = text.lower().split(maxsplit=n)[:n]
     fingerprint_text = ' '.join(words)
     return hashlib.md5(fingerprint_text.encode()).hexdigest()
 
@@ -261,107 +247,3 @@ def download_and_clean(url_file: str, output_dir: str, min_words: int = 50, max_
     print_stats(stats)
 
     return stats
-
-
-# =============================================================================
-# CLI
-# =============================================================================
-
-def main():
-    """Command-line interface."""
-    import sys
-    import argparse
-
-    # Check for simple commands (backward compatibility)
-    if len(sys.argv) >= 2 and sys.argv[1] == 'stats':
-        if len(sys.argv) < 3:
-            print("Usage: textnano stats <dir>")
-            sys.exit(1)
-        stats = estimate_dataset_size(sys.argv[2])
-        print(f"Files:     {stats['files']}")
-        print(f"Words:     {stats['words']:,}")
-        print(f"Size:      {stats['mb']:.1f} MB")
-        print(f"Avg/file:  {stats['avg_words_per_file']} words")
-        return
-
-    if len(sys.argv) >= 2 and sys.argv[1] == 'merge':
-        if len(sys.argv) < 4:
-            print("Usage: textnano merge <dir1> <dir2> ... <output_dir>")
-            sys.exit(1)
-        output = sys.argv[-1]
-        inputs = sys.argv[2:-1]
-        merge_datasets(*inputs, output_dir=output, is_duplicate_func=is_duplicate)
-        return
-
-    # Parse arguments
-    parser = argparse.ArgumentParser(
-        description='textnano - Minimal text dataset builder',
-        formatter_class=argparse.RawDescriptionHelpFormatter
-    )
-    parser.add_argument('url_file', help='File with URLs (one per line)')
-    parser.add_argument('output_dir', help='Output directory')
-    parser.add_argument('max_urls', nargs='?', type=int, default=None,
-                        help='Maximum URLs to process')
-    parser.add_argument('--exclude-domains', '-ed', nargs='+',
-                        help='Additional domains to exclude (adds to defaults)')
-    parser.add_argument('--exclude-extensions', '-ee', nargs='+',
-                        help='Additional file extensions to exclude (adds to defaults)')
-    parser.add_argument('--no-default-excludes', action='store_true',
-                        help='Disable default exclusion lists (only use custom excludes)')
-
-    args = parser.parse_args()
-
-    # Download command
-    stats = download_and_clean(
-        args.url_file,
-        args.output_dir,
-        max_urls=args.max_urls,
-        exclude_domains=args.exclude_domains,
-        exclude_extensions=args.exclude_extensions,
-        use_default_excludes=not args.no_default_excludes
-    )
-
-    # Show dataset stats
-    dataset_stats = estimate_dataset_size(args.output_dir)
-    print(f"\nDataset: {dataset_stats['files']} files, "
-          f"{dataset_stats['words']:,} words, "
-          f"{dataset_stats['mb']:.1f} MB")
-
-
-if __name__ == '__main__':
-    main()
-
-
-# =============================================================================
-# USAGE EXAMPLES (copy these to test)
-# =============================================================================
-
-"""
-# Example 1: Basic usage
-python textnano.py urls.txt dataset/
-
-# Example 2: Limit to 100 URLs
-python textnano.py urls.txt dataset/ 100
-
-# Example 3: In Python
-import textnano
-
-textnano.download_and_clean('urls.txt', 'output/')
-stats = textnano.estimate_dataset_size('output/')
-print(f"Got {stats['words']:,} words")
-
-# Example 4: Create sample URLs file
-cat > urls.txt << EOF
-https://en.wikipedia.org/wiki/Machine_learning
-https://en.wikipedia.org/wiki/Deep_learning
-https://en.wikipedia.org/wiki/Natural_language_processing
-https://en.wikipedia.org/wiki/Computer_vision
-https://www.gutenberg.org/files/1342/1342-h/1342-h.htm
-EOF
-
-# Example 5: Get stats
-python textnano.py stats dataset/
-
-# Example 6: Merge datasets
-python textnano.py merge dataset1/ dataset2/ merged/
-"""
