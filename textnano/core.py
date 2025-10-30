@@ -24,6 +24,7 @@ import hashlib
 import ssl
 import logging
 import asyncio
+import random
 from pathlib import Path
 from typing import Optional, Set, Dict, List
 from urllib.parse import urlparse, urljoin
@@ -31,7 +32,7 @@ from urllib.parse import urlparse, urljoin
 import httpx
 import protego
 
-from .config import DEFAULT_EXCLUDE_DOMAINS, DEFAULT_EXCLUDE_EXTENSIONS
+from .config import DEFAULT_EXCLUDE_DOMAINS, DEFAULT_EXCLUDE_EXTENSIONS, DEFAULT_USER_AGENTS
 from .utils import print_stats, estimate_dataset_size, merge_datasets
 
 # Configure logging
@@ -39,23 +40,18 @@ logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 
 # =============================================================================
-# ROBOTS.TXT CACHE
+# ROBOTS.TXT CACHE & USER AGENT ROTATION
 # =============================================================================
 
 # Global cache for robots.txt parsers
 _robots_cache: Dict[str, Optional[protego.Protego]] = {}
 
 
+def get_random_user_agent() -> str:
+    return random.choice(DEFAULT_USER_AGENTS)
+
+
 async def get_robots_parser(client: httpx.AsyncClient, url: str) -> Optional[protego.Protego]:
-    """Get robots.txt parser for a domain (cached).
-
-    Args:
-        client: httpx AsyncClient
-        url: URL to get robots.txt for
-
-    Returns:
-        Protego parser or None if robots.txt not available
-    """
     parsed = urlparse(url)
     domain = f"{parsed.scheme}://{parsed.netloc}"
 
@@ -77,16 +73,6 @@ async def get_robots_parser(client: httpx.AsyncClient, url: str) -> Optional[pro
 
 
 def can_fetch(robots_parser: Optional[protego.Protego], url: str, user_agent: str = "textnano") -> bool:
-    """Check if URL can be fetched according to robots.txt.
-
-    Args:
-        robots_parser: Protego parser or None
-        url: URL to check
-        user_agent: User agent string
-
-    Returns:
-        bool: True if URL can be fetched
-    """
     if robots_parser is None:
         return True
     return robots_parser.can_fetch(url, user_agent)
@@ -124,7 +110,7 @@ async def download_text_async(url: str, client: httpx.AsyncClient, timeout: int 
                 if delay:
                     await asyncio.sleep(delay)
 
-        headers = {'User-Agent': f'Mozilla/5.0 (compatible; {user_agent}/1.0)'}
+        headers = {'User-Agent': get_random_user_agent()}
         response = await client.get(url, timeout=timeout, headers=headers, follow_redirects=True)
         response.raise_for_status()
 
@@ -143,13 +129,8 @@ async def download_text_async(url: str, client: httpx.AsyncClient, timeout: int 
 
 
 def download_text(url: str, timeout: int = 30) -> str:
-    """Download and extract text from a URL (synchronous fallback).
-
-    Returns:
-        str: Cleaned text content, or empty string if failed
-    """
     try:
-        headers = {'User-Agent': 'Mozilla/5.0'}
+        headers = {'User-Agent': get_random_user_agent()}
         req = urllib.request.Request(url, headers=headers)
 
         context = ssl.create_default_context()
@@ -177,14 +158,6 @@ def download_text(url: str, timeout: int = 30) -> str:
 # =============================================================================
 
 def clean_html(html_content: str) -> str:
-    """Remove HTML tags and clean text.
-
-    Args:
-        html_content: Raw HTML string
-
-    Returns:
-        str: Clean text
-    """
     text = re.sub(r'<script[^>]*>.*?</script>', '', html_content, flags=re.DOTALL | re.IGNORECASE)
     text = re.sub(r'<style[^>]*>.*?</style>', '', text, flags=re.DOTALL | re.IGNORECASE)
     text = re.sub(r'<[^>]+>', '', text)
@@ -201,30 +174,12 @@ def clean_html(html_content: str) -> str:
 # =============================================================================
 
 def text_fingerprint(text: str, n: int = 8) -> str:
-    """Create fingerprint of text using first N words.
-
-    Args:
-        text: Input text
-        n: Number of words to use (default: 8)
-
-    Returns:
-        str: MD5 hash of first N words
-    """
     words = text.lower().split(maxsplit=n)[:n]
     fingerprint_text = ' '.join(words)
     return hashlib.md5(fingerprint_text.encode()).hexdigest()
 
 
 def is_duplicate(text: str, seen_fingerprints: Set[str]) -> bool:
-    """Check if text is duplicate based on fingerprint.
-
-    Args:
-        text: Text to check
-        seen_fingerprints: Set of seen fingerprints
-
-    Returns:
-        bool: True if duplicate
-    """
     fp = text_fingerprint(text)
 
     if fp in seen_fingerprints:
