@@ -23,6 +23,7 @@ import urllib.request
 import hashlib
 import ssl
 from pathlib import Path
+from typing import Optional, Set, Dict, List
 
 from .config import DEFAULT_EXCLUDE_DOMAINS, DEFAULT_EXCLUDE_EXTENSIONS
 from .utils import print_stats, estimate_dataset_size, merge_datasets
@@ -32,7 +33,7 @@ from .utils import print_stats, estimate_dataset_size, merge_datasets
 # DOWNLOAD
 # =============================================================================
 
-def download_text(url, timeout=30):
+def download_text(url: str, timeout: int = 30) -> Optional[str]:
     """Download and extract text from a URL.
 
     Returns:
@@ -64,7 +65,7 @@ def download_text(url, timeout=30):
 # CLEANING
 # =============================================================================
 
-def clean_html(html_content):
+def clean_html(html_content: str) -> str:
     """Remove HTML tags and clean text.
 
     Args:
@@ -97,7 +98,7 @@ def clean_html(html_content):
 # DEDUPLICATION
 # =============================================================================
 
-def text_fingerprint(text, n=8):
+def text_fingerprint(text: str, n: int = 8) -> str:
     """Create fingerprint of text using first N words.
 
     Args:
@@ -112,7 +113,7 @@ def text_fingerprint(text, n=8):
     return hashlib.md5(fingerprint_text.encode()).hexdigest()
 
 
-def is_duplicate(text, seen_fingerprints, threshold=0.8):
+def is_duplicate(text: str, seen_fingerprints: Set[str], threshold: float = 0.8) -> bool:
     """Check if text is duplicate based on fingerprint.
 
     Args:
@@ -136,9 +137,9 @@ def is_duplicate(text, seen_fingerprints, threshold=0.8):
 # MAIN PIPELINE
 # =============================================================================
 
-def download_and_clean(url_file, output_dir, min_words=50, max_urls=None,
-                       exclude_domains=None, exclude_extensions=None,
-                       use_default_excludes=True):
+def download_and_clean(url_file: str, output_dir: str, min_words: int = 50, max_urls: Optional[int] = None,
+                       exclude_domains: Optional[List[str]] = None, exclude_extensions: Optional[List[str]] = None,
+                       use_default_excludes: bool = True) -> Dict[str, int]:
     """Download text from URLs, clean, and deduplicate.
 
     Args:
