@@ -114,13 +114,12 @@ def text_fingerprint(text: str, n: int = 8) -> str:
     return hashlib.md5(fingerprint_text.encode()).hexdigest()
 
 
-def is_duplicate(text: str, seen_fingerprints: Set[str], threshold: float = 0.8) -> bool:
+def is_duplicate(text: str, seen_fingerprints: Set[str]) -> bool:
     """Check if text is duplicate based on fingerprint.
 
     Args:
         text: Text to check
         seen_fingerprints: Set of seen fingerprints
-        threshold: Not used in this simple version
 
     Returns:
         bool: True if duplicate
