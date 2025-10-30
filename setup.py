@@ -12,7 +12,7 @@ long_description = readme_file.read_text(encoding="utf-8") if readme_file.exists
 
 setup(
     name="textnano",
-    version="0.1.0",
+    version="0.2.0",
     description="Minimal text dataset builder - Zero dependencies, single file, perfect for ML students",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -22,7 +22,8 @@ setup(
     packages=find_packages(),
     python_requires=">=3.10",
     install_requires=[
-        # Zero dependencies - pure Python stdlib!
+        "httpx>=0.27.0",
+        "protego>=0.3.0",
     ],
     extras_require={
         "dev": [

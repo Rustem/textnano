@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "textnano"
-version = "0.1.0"
+version = "0.2.0"
 description = "A minimal text dataset builder inspired by lazynlp. Perfect for ML students who just want clean text datasets quickly."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -27,7 +27,10 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
-dependencies = []  # Zero dependencies as advertised!
+dependencies = [
+    "httpx>=0.27.0",
+    "protego>=0.3.0",
+]
 
 [project.optional-dependencies]
 dev = [
