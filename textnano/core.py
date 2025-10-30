@@ -62,7 +62,14 @@ def download_text(url: str, timeout: int = 30) -> Optional[str]:
 
         return text if text.strip() else None
 
-    except Exception:
+    except urllib.error.HTTPError as e:
+        logging.error(f"HTTP error {e.code} for {url}: {e.reason}")
+        return None
+    except urllib.error.URLError as e:
+        logging.error(f"URL error for {url}: {e.reason}")
+        return None
+    except Exception as e:
+        logging.error(f"Unexpected error for {url}: {type(e).__name__}: {e}")
         return None
 
 
