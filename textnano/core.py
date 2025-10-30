@@ -180,10 +180,6 @@ def download_and_clean(url_file: str, output_dir: str, min_words: int = 50, max_
     if max_urls:
         urls = urls[:max_urls]
 
-    # Open log files
-    success_log = open(os.path.join(output_dir, 'success.txt'), 'w')
-    failed_log = open(os.path.join(output_dir, 'failed.txt'), 'w')
-
     # Deduplication
     seen_fingerprints = set()
 
@@ -193,64 +189,63 @@ def download_and_clean(url_file: str, output_dir: str, min_words: int = 50, max_
     # Process each URL
     print(f"Processing {len(urls)} URLs...")
 
-    for idx, url in enumerate(urls, 1):
-        print(f"[{idx}/{len(urls)}] {url[:60]}...")
+    with open(os.path.join(output_dir, 'success.txt'), 'w') as success_log, \
+         open(os.path.join(output_dir, 'failed.txt'), 'w') as failed_log:
 
-        # Check exclusion filters
-        parsed = urlparse(url)
+        for idx, url in enumerate(urls, 1):
+            print(f"[{idx}/{len(urls)}] {url[:60]}...")
 
-        # Check domain exclusion
-        if exclude_domains and any(domain in parsed.netloc for domain in exclude_domains):
-            failed_log.write(f"{url}\texcluded_domain\n")
-            stats['excluded'] += 1
-            print("  ⊘ Excluded domain")
-            continue
+            # Check exclusion filters
+            parsed = urlparse(url)
 
-        # Check extension exclusion
-        if exclude_extensions:
-            path_lower = parsed.path.lower()
-            if any(path_lower.endswith(f'.{ext}') for ext in exclude_extensions):
-                failed_log.write(f"{url}\texcluded_extension\n")
+            # Check domain exclusion
+            if exclude_domains and any(domain in parsed.netloc for domain in exclude_domains):
+                failed_log.write(f"{url}\texcluded_domain\n")
                 stats['excluded'] += 1
-                print("  ⊘ Excluded extension")
+                print("  ⊘ Excluded domain")
                 continue
 
-        # Download
-        text = download_text(url)
+            # Check extension exclusion
+            if exclude_extensions:
+                path_lower = parsed.path.lower()
+                if any(path_lower.endswith(f'.{ext}') for ext in exclude_extensions):
+                    failed_log.write(f"{url}\texcluded_extension\n")
+                    stats['excluded'] += 1
+                    print("  ⊘ Excluded extension")
+                    continue
 
-        if not text:
-            failed_log.write(f"{url}\n")
-            stats['failed'] += 1
-            print("  ✗ Failed to download")
-            continue
+            # Download
+            text = download_text(url)
 
-        # Check length
-        word_count = len(text.split())
-        if word_count < min_words:
-            failed_log.write(f"{url}\ttoo_short:{word_count}\n")
-            stats['too_short'] += 1
-            print(f"  ⊘ Too short ({word_count} words)")
-            continue
+            if not text:
+                failed_log.write(f"{url}\n")
+                stats['failed'] += 1
+                print("  ✗ Failed to download")
+                continue
 
-        # Check duplicate
-        if is_duplicate(text, seen_fingerprints):
-            stats['duplicates'] += 1
-            print("  ⊘ Duplicate")
-            continue
+            # Check length
+            word_count = len(text.split())
+            if word_count < min_words:
+                failed_log.write(f"{url}\ttoo_short:{word_count}\n")
+                stats['too_short'] += 1
+                print(f"  ⊘ Too short ({word_count} words)")
+                continue
 
-        # Save
-        output_file = os.path.join(output_dir, f"{stats['success']+1:04d}.txt")
-        with open(output_file, 'w') as f:
-            f.write(f"{url}\n\n")  # First line = URL
-            f.write(text)
+            # Check duplicate
+            if is_duplicate(text, seen_fingerprints):
+                stats['duplicates'] += 1
+                print("  ⊘ Duplicate")
+                continue
 
-        success_log.write(f"{url}\n")
-        stats['success'] += 1
-        print(f"  ✓ Saved ({word_count} words)")
+            # Save
+            output_file = os.path.join(output_dir, f"{stats['success']+1:04d}.txt")
+            with open(output_file, 'w') as f:
+                f.write(f"{url}\n\n")  # First line = URL
+                f.write(text)
 
-    # Cleanup
-    success_log.close()
-    failed_log.close()
+            success_log.write(f"{url}\n")
+            stats['success'] += 1
+            print(f"  ✓ Saved ({word_count} words)")
 
     # Print summary
     print_stats(stats)
