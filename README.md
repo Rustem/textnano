@@ -117,6 +117,11 @@ textnano urls wikipedia_urls.txt wiki_dataset/
 textnano reddit reddit_urls/ --output reddit_urls.txt --max 5000
 # 3. Build dataset:
 textnano urls reddit_urls.txt reddit_dataset/
+```
+
+![Reddit URL Extraction Example](docs/reddit-crawling.png)
+
+```bash
 
 # Project Gutenberg
 # 1. Generate URLs (checks each book ID):

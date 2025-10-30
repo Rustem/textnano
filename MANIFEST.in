@@ -1,6 +1,7 @@
 # Include documentation
 include README.md
 include LICENSE
+recursive-include docs *.png *.jpg *.jpeg *.gif
 
 # Include package data
 recursive-include textnano *.py
